@@ -1,0 +1,91 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-arabic: 'Amiri', 'Plus Jakarta Sans', serif;
+
+  --color-brand-50: #ecfdf7;
+  --color-brand-100: #d1faec;
+  --color-brand-200: #a7f3da;
+  --color-brand-300: #6ee7c3;
+  --color-brand-400: #34d3a6;
+  --color-brand-500: #10b98c;
+  --color-brand-600: #059673;
+  --color-brand-700: #047860;
+  --color-brand-800: #065f4e;
+  --color-brand-900: #064e41;
+  --color-brand-950: #022c25;
+
+  /* Warna pilihan jawaban A–D */
+  --color-opt-a: #0ea5e9;
+  --color-opt-b: #f59e0b;
+  --color-opt-c: #f43f5e;
+  --color-opt-d: #8b5cf6;
+
+  --shadow-soft: 0 1px 2px rgb(6 78 65 / 0.05), 0 8px 24px -8px rgb(6 78 65 / 0.12);
+  --shadow-lift: 0 2px 4px rgb(6 78 65 / 0.06), 0 16px 40px -12px rgb(6 78 65 / 0.25);
+
+  --animate-pop: pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-spin-slow: spin 18s linear infinite;
+
+  @keyframes pop {
+    0% { transform: scale(0.6); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0) rotate(-6deg); }
+    50% { transform: translateY(-14px) rotate(4deg); }
+  }
+}
+
+@layer base {
+  html { -webkit-tap-highlight-color: transparent; }
+  body {
+    @apply bg-slate-50 font-sans text-slate-800 antialiased;
+  }
+  [dir='rtl'] { font-family: var(--font-arabic); }
+  ::selection { @apply bg-brand-200 text-brand-950; }
+}
+
+@layer components {
+  .input {
+    @apply w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-slate-800 shadow-xs transition outline-none placeholder:text-slate-400 hover:border-slate-300 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/15;
+  }
+  .label { @apply mb-1.5 block text-sm font-semibold text-slate-700; }
+  .scrollbar-none { scrollbar-width: none; }
+  .scrollbar-none::-webkit-scrollbar { display: none; }
+}
+
+/* ===== Kartu jawaban cetak (ukuran dalam mm agar pas A4) ===== */
+.print-page {
+  width: 190mm; height: 277mm; margin: 0 auto; background: #fff;
+  display: grid; page-break-after: always; break-after: page;
+}
+.print-page:last-child { page-break-after: auto; break-after: auto; }
+.per-1 .print-page { grid-template: 1fr / 1fr; }
+.per-2 .print-page { grid-template: 1fr 1fr / 1fr; }
+.per-4 .print-page { grid-template: 1fr 1fr / 1fr 1fr; }
+.answer-card { position: relative; border: 0.3mm dashed #c8d2cf; display: flex; align-items: center; justify-content: center; color: #000; overflow: hidden; }
+.ac-marker { width: 105mm; height: 105mm; }
+.per-1 .ac-marker { width: 160mm; height: 160mm; }
+.per-4 .ac-marker { width: 72mm; height: 72mm; }
+.ac-marker svg { display: block; }
+.ac-label { position: absolute; display: flex; align-items: baseline; gap: 1.5mm; line-height: 1; font-family: 'Plus Jakarta Sans', sans-serif; }
+.ac-label b { font-size: 16pt; font-weight: 800; }
+.ac-label span { font-size: 8pt; color: #555; }
+.per-1 .ac-label b { font-size: 22pt; }
+.ac-top { top: 5mm; left: 50%; transform: translateX(-50%); }
+.ac-bottom { bottom: 5mm; left: 50%; transform: translateX(-50%) rotate(180deg); }
+.ac-right { right: 4mm; top: 50%; transform: translateY(-50%) rotate(90deg); }
+.ac-left { left: 4mm; top: 50%; transform: translateY(-50%) rotate(-90deg); }
+.ac-corner { position: absolute; left: 5mm; top: 4mm; font-size: 8pt; color: #666; max-width: 45%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: 'Plus Jakarta Sans', sans-serif; }
+
+@page { size: A4; margin: 10mm; }
+@media print {
+  body { background: #fff !important; }
+  .no-print { display: none !important; }
+  .print-only-reset { padding: 0 !important; margin: 0 !important; box-shadow: none !important; background: none !important; transform: none !important; }
+  .print-area .print-page { box-shadow: none !important; margin: 0 !important; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}

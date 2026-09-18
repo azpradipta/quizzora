@@ -1,0 +1,19 @@
+<!doctype html>
+<html><head><link rel="stylesheet" href="/src/styles.css" /></head>
+<body style="background:#fff">
+<div id="root"></div>
+<script type="module">
+import React from 'react'
+import { createRoot } from 'react-dom/client'
+import { AnswerCard } from '/src/pages/PrintCards.tsx'
+const per = new URLSearchParams(location.search).get('per') ?? '2'
+const rot = new URLSearchParams(location.search).get('rot')
+const h = React.createElement
+const cards = Array.from({ length: +per * 2 }, (_, i) => h(AnswerCard, { key: i, number: i + 7, name: i === 0 ? 'Aisyah Putri Ramadhani' : undefined }))
+const pages = []
+for (let i = 0; i < cards.length; i += +per) pages.push(h('div', { className: 'print-page', key: i }, cards.slice(i, i + +per)))
+createRoot(document.getElementById('root')).render(
+  rot !== null
+    ? h('div', { style: { padding: 80, display: 'inline-block' } }, h('div', { style: { transform: `rotate(${rot}deg)`, width: '190mm', height: '138mm', display: 'grid' } }, h(AnswerCard, { number: 7 })))
+    : h('div', { className: 'print-area per-' + per }, pages))
+</script></body></html>

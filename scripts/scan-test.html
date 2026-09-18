@@ -1,0 +1,45 @@
+<!doctype html>
+<html><body>
+<canvas id="c" width="1920" height="1080"></canvas>
+<pre id="out">running</pre>
+<script type="module">
+import { markerSvg, createDetector, detect } from '/src/scan/markers.ts'
+const params = new URLSearchParams(location.search)
+const SIZE = +(params.get('size') ?? 40), BLUR = +(params.get('blur') ?? 1), TILT = +(params.get('tilt') ?? 15)
+const c = document.getElementById('c'), ctx = c.getContext('2d', { willReadFrequently: true })
+// latar dengan gradasi cahaya (kelas tidak merata terangnya)
+const g = ctx.createLinearGradient(0, 0, 1920, 1080); g.addColorStop(0, '#d8d2c4'); g.addColorStop(1, '#6f6a60')
+ctx.fillStyle = g; ctx.fillRect(0, 0, 1920, 1080)
+let seed = 3; const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647)
+const load = (svg) => new Promise((r) => { const im = new Image(); im.onload = () => r(im); im.src = 'data:image/svg+xml;base64,' + btoa(svg) })
+const truth = new Map()
+ctx.filter = `blur(${BLUR}px)`
+for (let i = 0; i < 30; i++) {
+  const card = i + 1, ans = Math.floor(rnd() * 4)
+  const im = await load(markerSvg(card))
+  const x = 120 + (i % 6) * 290 + rnd() * 60, y = 120 + Math.floor(i / 6) * 190 + rnd() * 40
+  const s = SIZE * (0.8 + rnd() * 0.5)
+  ctx.save(); ctx.translate(x, y)
+  // jawaban A=0 (tegak), B=1 → sisi kanan di atas = putar -90°, C=2 → 180°, D=3 → +90°
+  const base = [0, -90, 180, 90][ans]
+  ctx.rotate(((base + (rnd() * 2 - 1) * TILT) * Math.PI) / 180)
+  ctx.transform(1, 0, (rnd() - 0.5) * 0.3, 0.85 + rnd() * 0.15, 0, 0) // sedikit perspektif/miring
+  ctx.fillStyle = '#fff'; ctx.fillRect(-s * 0.8, -s * 0.8, s * 1.6, s * 1.6) // kertas kartu
+  ctx.drawImage(im, -s / 2, -s / 2, s, s)
+  ctx.restore()
+  truth.set(card, ans)
+}
+ctx.filter = 'none'
+// noise sensor
+const img = ctx.getImageData(0, 0, 1920, 1080)
+for (let p = 0; p < img.data.length; p += 4) { const n = (rnd() - 0.5) * 30; img.data[p] += n; img.data[p + 1] += n; img.data[p + 2] += n }
+ctx.putImageData(img, 0, 0)
+const det = createDetector()
+const t0 = performance.now()
+const found = detect(det, ctx.getImageData(0, 0, 1920, 1080))
+const ms = performance.now() - t0
+let correct = 0, wrongAns = 0, unknown = 0
+for (const f of found) { if (!truth.has(f.card)) unknown++; else if (truth.get(f.card) === f.answer) correct++; else wrongAns++ }
+document.getElementById('out').textContent = JSON.stringify({ SIZE, BLUR, TILT, detected: found.length, correct, wrongAns, unknownCards: unknown, ms: Math.round(ms) })
+</script>
+</body></html>
